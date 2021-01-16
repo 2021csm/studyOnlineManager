@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../css/elementui(1).css">
+    <script src="../js/util.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../js/elementui.js"></script>
+
+
+</head>
+<body>
+<div id="app">
+    <el-form :inline="true"  >
+        <el-form-item label="ID">
+            <el-input v-model="searchMap.subject_info_id" placeholder="信息ID"></el-input>
+        </el-form-item>
+        <el-form-item label="信息名称">
+            <el-input v-model="searchMap.subject_info_name" placeholder="信息名称"></el-input>
+        </el-form-item>
+
+        <el-button type="primary" @click="fetchData">查询</el-button>
+        <el-button type="primary" @click="formVisible=true,title='添加科目信息'">新增</el-button>
+
+    </el-form>
+    <el-table
+            :data="tableData"
+            style="width: 100%">
+        <el-table-column
+                prop="subject_info_id"
+                label="ID"
+                width="180">
+        </el-table-column>
+        <el-table-column
+                prop="subject_id"
+                label="科目Id值"
+                width="180">
+        </el-table-column>
+        <el-table-column
+                prop="subject_info_name"
+                label="信息名称"
+                width="180">
+        </el-table-column>
+
+        <el-table-column
+                prop="value_list"
+                label="信息值表">
+        </el-table-column>
+        <el-table-column
+                label="操作"
+        >
+            <template slot-scope="scope">
+                <el-button  @click="edit(scope.row.subject_info_id)" size="small">修改</el-button>
+                <el-button  @click="dele(scope.row.subject_info_id)" size="small">删除</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+    <el-pagination
+            @size-change="fetchData"
+            @current-change="fetchData"
+            :current-page.sync="currentPage"
+            :page-sizes="[10, 20, 30, 40]"
+            :page-size="size"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total">
+    </el-pagination>
+    <el-dialog
+
+            :title="title"
+            :visible.sync="formVisible"
+            width="30%"
+            :before-close="handleClose">
+
+
+
+        <el-form :inline="true"  >
+            <el-form-item label="信息ID号">
+                <el-input v-model="pojo.subject_info_id" placeholder="信息ID"></el-input>
+            </el-form-item>
+            <el-form-item label="科目ID号">
+                <el-input v-model="pojo.subject_id" placeholder="科目ID号"></el-input>
+            </el-form-item>
+            <el-form-item label="信息名称">
+
+                    <el-select v-model="pojo.subject_info_name" filterable placeholder="请选择"
+                       @change="findAllValue">
+                        <el-option
+                                v-for="item in types"
+                                :key="item.name"
+                                :label="item.name"
+                                :value="item.name">
+                        </el-option>
+                    </el-select>
+
+            </el-form-item>
+            <el-form-item label="信息值表">
+                <el-select v-model="pojo.value_list" filterable placeholder="请选择" >
+                    <el-option
+                            v-for="v in values"
+                            :key="v"
+                            :label="v"
+                            :value="v"
+                             >
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item>
+                <el-button @click="formVisible = false">取 消</el-button>
+                <el-button type="primary" @click="save()">保存</el-button>
+            </el-form-item>
+        </el-form>
+
+    </el-dialog>
+</div>
+</body>
+<script>
+    new Vue({
+
+        el:"#app",
+        data(){
+            return{
+                title:"添加科目信息",
+                subject_name:"",
+                tableData:[],
+                currentPage:1,
+                size:10,
+                total:10,
+                searchMap:{},
+                pojo:{},
+                formVisible:false,
+                types:[],
+                values:[]
+            }
+        },
+        created(){
+
+           this.findAllType();
+          this.pojo.subject_id=getQueryString('id');
+         this.searchMap={subject_id:getQueryString('id')};
+           this.fetchData();
+        },
+        methods:{
+            fetchData(){
+                var self=this;
+
+                axios.post(`/SubjectInfoList?page=${this.currentPage}&size=${this.size}`,this.searchMap).then(function (response){
+
+                    self.tableData=response.data.rows;
+                    self.total=response.data.totoal;
+
+
+                })
+            },
+            save(){
+                var self=this;
+
+
+                axios.post(`${this.title=='添加科目信息'?"/addSubjectInfo":"/SubjectInfoUpdate"}`,this.pojo).then(function (response){
+                    self.formVisible=false;
+                    self.fetchData();
+
+
+                })
+            },
+            findAllType(){
+                var self=this;
+
+                axios.post("/findAllType").then(function (response){
+                   self.types=response.data;
+                })
+            },
+            findAllValue(){
+                var self=this;
+                axios.post(`/findAllValue?name=${this.pojo.subject_info_name}`).then(function (response){
+                    self.values=response.data;
+                })
+            },
+
+
+
+            edit(subject_info_id){
+                var self=this;
+                self.formVisible=true;
+                self.title="编辑科目信息";
+                axios.get(`/subjectInfoSelectById?id=${subject_info_id}`).then(function (response){
+
+                    self.pojo=response.data;
+
+
+                })
+            },
+            dele(subject_info_id){
+
+                var self=this;
+                this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+
+                    axios.get(`/subjectInfoDeleteById?id=${subject_info_id}`).then(function (response){
+
+                        self.fetchData();
+
+
+                    });
+                    this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            }
+
+        }
+    })
+</script>
+</html>

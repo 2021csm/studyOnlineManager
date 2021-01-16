@@ -1,0 +1,52 @@
+server:
+  port: 8082
+oosconfig:
+  endpoint: oss-cn-beijing.aliyuncs.com
+  bucket-name: study2020
+  access-key-id: LTAI4GCZAyVNvmtQsfiiiXxu
+  access-key-secret: DkhY9NXVGSWIK6m0CtykBSowvU5jFC
+  dir: image
+esconfig:
+  hostname: 127.0.0.1
+  port: 9200
+  scheme: http
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/onlinestudy?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=GMT
+    username: root
+    password: 112911
+    type: com.alibaba.druid.pool.DruidDataSource
+  redis:
+    host: 172.17.0.1
+    port: 6379
+    password: 123456
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 500
+        min-idle: 0
+    lettuce:
+      shutdown-timeout: 0
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+mybatis:
+  type-aliases-package: com.example.study.bean
+  mapper-locations: classpath:mappers/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+mapper:
+  mappers: com.example.study.mapper.UserMapper
+  identity: MYSQL
+pagehelper:
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+  helper-dialect: mysql
+
+
+
